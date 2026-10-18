@@ -244,6 +244,9 @@ body{overscroll-behavior:none}
 .hfr-6::before{background-size:200% 200%;animation:fshift 3s linear infinite}
 .hfr-6{box-shadow:0 0 0 3px #6d2fb0,0 0 22px #ffd35ccc!important}
 .pvf{margin-top:6px!important}.pvf::before{border-radius:14px}.pvf::after{font-size:15px!important;top:-11px!important}.pvf.big{margin:22px 28px!important}.pvf.big::before{border-radius:18px}.pvf.big::after{font-size:26px!important;top:-18px!important}.pvf.big .fc{font-size:18px}
+#audioHint{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:none;padding:8px 16px;border-radius:20px;background:#0b3a6acc;border:1.5px solid #bff3ff;color:#fff;font-size:12px;font-weight:900;pointer-events:none;box-shadow:0 3px 10px #0006}
+#audioHint.on{display:block;animation:hintpulse 1.4s ease-in-out infinite alternate}
+@keyframes hintpulse{to{transform:translateX(-50%) scale(1.06)}}
 </style>
 </head>
 <body>
@@ -300,7 +303,7 @@ body{overscroll-behavior:none}
 <nav class="tabs"><button class="tab active" data-page="home"><span class="ico">🏠</span>ホーム</button><button class="tab" data-page="mission"><span class="ico">📅</span>ミッション<i class="dot" id="missionDot"></i></button><button class="tab" data-page="collection"><span class="ico">🐾</span>ツム図鑑</button><button class="tab" data-page="gacha"><span class="ico">🎁</span>ガチャ</button><button class="tab" data-page="dress"><span class="ico">👑</span>着せ替え</button></nav>
 </div>
 <div id="cutin"><div class="cibar"><img class="ciimg" id="ciimg" alt=""><div class="citext"><div class="cisub" id="cisub"></div><div class="ciname" id="ciname"></div></div></div></div>
-<div id="pauseOv"><div class="pausebox"><div id="pMain"><h2>⏸ ポーズ中</h2><p>タイマーも止まっているよ。</p><button class="goldbtn" id="resumeBtn" style="width:100%;margin-bottom:8px">▶ さいかい</button><div class="btnrow"><button class="bluebtn" id="pauseBgm">♫ BGM ON</button><button class="bluebtn" id="pauseSe">🔊 効果音 ON</button></div><button class="bluebtn" id="quitBtn" style="width:100%;margin-top:8px;background:linear-gradient(#ff9fc0,#e8527f);border-color:#ffd0df;box-shadow:0 3px #9a2c52">⌂ ホームにもどる</button></div><div id="pQuit" style="display:none"><h2>ほんとうにやめる？</h2><p>使ったハートは戻らないよ。<br>（ここまでに消したツムの経験値とツムレベルは引き継がれるよ）</p><div class="btnrow"><button class="goldbtn" id="quitNo">つづける</button><button class="bluebtn" id="quitYes">やめる</button></div></div></div></div>
+<div id="audioHint">🔇 画面をタップすると音が出ます</div><div id="pauseOv"><div class="pausebox"><div id="pMain"><h2>⏸ ポーズ中</h2><p>タイマーも止まっているよ。</p><button class="goldbtn" id="resumeBtn" style="width:100%;margin-bottom:8px">▶ さいかい</button><div class="btnrow"><button class="bluebtn" id="pauseBgm">♫ BGM ON</button><button class="bluebtn" id="pauseSe">🔊 効果音 ON</button></div><button class="bluebtn" id="quitBtn" style="width:100%;margin-top:8px;background:linear-gradient(#ff9fc0,#e8527f);border-color:#ffd0df;box-shadow:0 3px #9a2c52">⌂ ホームにもどる</button></div><div id="pQuit" style="display:none"><h2>ほんとうにやめる？</h2><p>使ったハートは戻らないよ。<br>（ここまでに消したツムの経験値とツムレベルは引き継がれるよ）</p><div class="btnrow"><button class="goldbtn" id="quitNo">つづける</button><button class="bluebtn" id="quitYes">やめる</button></div></div></div></div>
 <div id="gfx"><div class="gbox" id="gbox"><div class="gburst"></div><div class="gbody"></div><div class="glid"></div><div class="gbow"></div></div><div class="gcap" id="gcap">…</div><div class="gskip">タップでスキップ</div></div>
 <div class="modal" id="modal"><div class="dialog"><button class="close" id="closeModal">✕</button><div id="modalContent"></div></div></div>
 <script>
@@ -381,7 +384,7 @@ function switchBgm(mode){
  menuBgm.volume=0.4;const p=menuBgm.play();if(p&&p.catch)p.catch(()=>{});
 }
 function startBgmFromGesture(){if(bgmStarted)return;bgmStarted=true;switchBgm(playing?(fever?"fever":"play"):"menu")}
-document.addEventListener("pointerdown",startBgmFromGesture,{once:true});
+
 $("bgmToggle").onclick=()=>{bgmEnabled=!bgmEnabled;$("bgmToggle").textContent=bgmEnabled?"♫ BGM ON":"♫ BGM OFF";if(!bgmEnabled){menuBgm.pause();playBgm.pause();feverBgm.pause();bgmOff()}else{bgmStarted=true;switchBgm(playing?(fever?"fever":"play"):"menu")}};
 
 const canvas=$("game"),ctx=canvas.getContext("2d"),images=[];
@@ -473,7 +476,7 @@ function loop(t){const dt=lastFrame?Math.min(t-lastFrame,34):16;lastFrame=t;if(p
 
 /* ===== v13: pause / SE / result / tsum level ===== */
 let actx=null,seGain=null,runTc=[],runCoinShown=-1;
-function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();seGain=actx.createGain();seGain.gain.value=.55;seGain.connect(actx.destination)}catch(e){return null}}if(actx&&actx.state==="suspended")actx.resume();return actx}
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();seGain=actx.createGain();seGain.gain.value=.55;seGain.connect(actx.destination)}catch(e){return null}}if(actx&&actx.state!=="running")try{actx.resume()}catch(e){}return actx}
 const nf=x=>261.63*Math.pow(2,x/12),PEN=[0,2,4,7,9,12,14,16,19,21,24];
 function tone(f,t0,dur,type,vol,f2){const a=ac();if(!a||!seOn)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;o.type=type||"sine";o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol||.2),t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(seGain);o.start(t);o.stop(t+dur+.03)}
 function noise(t0,dur,vol,fc){const a=ac();if(!a||!seOn)return;const n=Math.floor(a.sampleRate*dur),buf=a.createBuffer(1,n,a.sampleRate),d=buf.getChannelData(0);for(let k=0;k<n;k++)d[k]=(Math.random()*2-1)*(1-k/n);const src=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();f.type="lowpass";f.frequency.value=fc;g.gain.value=vol;src.buffer=buf;src.connect(f);f.connect(g);g.connect(seGain);src.start(a.currentTime+t0)}
@@ -1052,6 +1055,23 @@ function doSkill(){
  busy=true;se((SKS[kind]||["whoosh"])[0]);
  fxs.push({kind,t0:fxClock,dur:spec.d,ia:spec.ia,hit:false,done:false,oi:()=>{busy=false;doSkillCore();const q=IMP[kind]||[5,.25,null];shake=q[0];flash=q[1];if(q[2])se(q[2]);else if(SKS[kind]&&SKS[kind][1])se(SKS[kind][1])}})
 }
+
+/* ===== v21: iOS-safe audio unlock ===== */
+let audioReady=false;
+try{if(navigator.audioSession)navigator.audioSession.type="playback"}catch(e){}
+function updateAudioHint(){const h=$("audioHint");if(h)h.classList.toggle("on",!audioReady)}
+function ensureBgm(){if(!bgmEnabled||playing)return;if(menuBgm.paused){menuBgm.volume=.4;const p=menuBgm.play();if(p&&p.then)p.then(()=>{bgmStarted=true}).catch(()=>{})}}
+function unlockAudio(){
+ const a=ac(),was=a?a.state:"none";
+ if(a&&was!=="running"){try{a.resume()}catch(e){}try{const b=a.createBuffer(1,1,22050),src=a.createBufferSource();src.buffer=b;src.connect(a.destination);src.start(0)}catch(e){}}
+ try{if(navigator.audioSession&&navigator.audioSession.type!=="playback")navigator.audioSession.type="playback"}catch(e){}
+ bgmStarted=true;ensureBgm();
+ if(a&&!a.__hooked){a.__hooked=true;a.onstatechange=()=>{audioReady=a.state==="running";updateAudioHint();if(audioReady)ensureBgm()}}
+ audioReady=!!(a&&a.state==="running");updateAudioHint()}
+["touchend","pointerup","click","keydown"].forEach(ev=>window.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(actx&&actx.state!=="running")try{actx.resume()}catch(e){}audioReady=!!(actx&&actx.state==="running");updateAudioHint();ensureBgm()}});
+window.addEventListener("pageshow",()=>{if(actx&&actx.state!=="running")try{actx.resume()}catch(e){}});
+updateAudioHint();
 load();resize();updateTop();updateHearts();renderCollection();initV16();requestAnimationFrame(loop);setInterval(updateHearts,1000);
 })();
 </script>
