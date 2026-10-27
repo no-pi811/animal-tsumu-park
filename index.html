@@ -247,6 +247,34 @@ body{overscroll-behavior:none}
 #audioHint{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:none;padding:8px 16px;border-radius:20px;background:#0b3a6acc;border:1.5px solid #bff3ff;color:#fff;font-size:12px;font-weight:900;pointer-events:none;box-shadow:0 3px 10px #0006}
 #audioHint.on{display:block;animation:hintpulse 1.4s ease-in-out infinite alternate}
 @keyframes hintpulse{to{transform:translateX(-50%) scale(1.06)}}
+
+.gameframe{position:relative}
+#feverDark{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .7s;background:radial-gradient(ellipse at 50% 45%,#150a30 0,#06030f 55%,#000 100%)}
+.app.fevermode #feverDark{opacity:1}
+.app.fevermode .stat{background:linear-gradient(#1a1040,#0b0830)!important;border-color:#b07bff!important;box-shadow:0 0 10px #8a4dff88!important}
+.app.fevermode .ribbon{filter:brightness(.55)}
+.app.fevermode .tlvchip{background:#150a3acc;border-color:#8a6dff}
+.app.fevermode .gamehint{color:#d9c9ff}
+.feverbar.on{background:linear-gradient(90deg,#ff3d9a,#ffd23d,#3dff8a,#3dc8ff,#8a3dff,#ff3d9a)!important;background-size:200% 100%!important;color:#fff!important;text-shadow:0 0 6px #000a;border-color:#fff!important;animation:ttflow 2s linear infinite!important}
+.gameframe.fever{border-color:transparent!important;background:#07031a!important;box-shadow:none!important;animation:none!important}
+.gameframe.fever #game{background:#05030f}
+.gameframe.fever::before{content:"";position:absolute;inset:-4px;border-radius:23px;padding:6px;background:conic-gradient(#ff3d9a,#ffd23d,#3dff8a,#3dc8ff,#8a3dff,#ff3d9a);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;pointer-events:none;z-index:3;animation:fevhue 3s linear infinite}
+.gameframe.fever::after{content:"";position:absolute;inset:-8px;border-radius:28px;background:conic-gradient(#ff3d9a,#ffd23d,#3dff8a,#3dc8ff,#8a3dff,#ff3d9a);filter:blur(16px);opacity:.75;z-index:-1;animation:fevhueblur 3s linear infinite;pointer-events:none}
+@keyframes fevhue{to{filter:hue-rotate(360deg)}}
+@keyframes fevhueblur{from{filter:blur(16px) hue-rotate(0)}to{filter:blur(16px) hue-rotate(360deg)}}
+.fl{position:absolute;inset:-2px;pointer-events:none;z-index:4;display:none}
+.gameframe.fever .fl{display:block}
+.fl i{display:block;width:9px;height:9px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor,0 0 11px currentColor;animation:flcol 2.4s linear infinite;animation-delay:calc(var(--i)*-.085s)}
+.fl .t,.fl .b{position:absolute;left:0;right:0;display:flex;justify-content:space-between}
+.fl .t{top:0}.fl .b{bottom:0;flex-direction:row-reverse}
+.fl .l,.fl .r{position:absolute;top:14px;bottom:14px;display:flex;flex-direction:column;justify-content:space-between}
+.fl .r{right:0}.fl .l{left:0;flex-direction:column-reverse}
+@keyframes flcol{0%{color:#ff3d9a}20%{color:#ffd23d}40%{color:#3dff8a}60%{color:#3dc8ff}80%{color:#8a3dff}100%{color:#ff3d9a}}
+#feverBanner{position:absolute;left:0;right:0;top:34%;z-index:6;text-align:center;pointer-events:none;opacity:0}
+#feverBanner b{display:block;font-size:clamp(46px,16vw,76px);font-weight:1000;letter-spacing:3px;line-height:1.05;background:linear-gradient(90deg,#ff3d9a,#ffd23d,#3dff8a,#3dc8ff,#8a3dff,#ff3d9a);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:2px #fff;filter:drop-shadow(0 0 10px #c07bff) drop-shadow(0 0 22px #3dc8ff);animation:ttflow 1.2s linear infinite}
+#feverBanner small{display:block;margin-top:2px;font-size:14px;font-weight:1000;color:#fff;text-shadow:0 0 8px #c07bff,0 0 16px #3dc8ff}
+#feverBanner.on{animation:fevpop 1.7s ease-out forwards}
+@keyframes fevpop{0%{opacity:0;transform:scale(.3)}18%{opacity:1;transform:scale(1.18)}30%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:scale(1.06)}}
 </style>
 </head>
 <body>
@@ -402,9 +430,9 @@ function updateHearts(){const now=Date.now();while(hearts<MAX_HEARTS&&nextHeart&
 function resize(){const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;const oldW=W,oldH=H;W=rect.width;H=rect.height;R=clamp(Math.sqrt(0.66*W*H/(45*Math.PI)),14,Math.min(W/12.6,H/8));const dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(balls.length)for(const b of balls){b.r=b.big?R*2:R;b.x=clamp(b.x/oldW*W,b.r,W-b.r);b.y=clamp(b.y/oldH*H,b.r,H-b.r)}}
 window.addEventListener("resize",resize);
 function mkBomb(x,y,r,power){return{id:bombUid++,x,y,r,power,vx:rand(1)-.5,vy:0,pm:0,pc:0,ps:0}}
-function updateFeverUI(){const bar=$("feverBar");if(!bar)return;bar.classList.toggle("on",fever);document.querySelector(".gameframe").classList.toggle("fever",fever);$("feverLabel").textContent=fever?`🔥 FEVER!! ×2 ${feverLeft}s`:`🔥 FEVER ${Math.floor(feverGauge/FEVER_NEED*100)}%`;$("feverFill").style.width=(fever?feverLeft/FEVER_SEC*100:feverGauge/FEVER_NEED*100)+"%"}
+function updateFeverUI(){const bar=$("feverBar");if(!bar)return;bar.classList.toggle("on",fever);document.querySelector(".gameframe").classList.toggle("fever",fever);document.querySelector(".app").classList.toggle("fevermode",fever);$("feverLabel").textContent=fever?`🔥 FEVER!! ×2 ${feverLeft}s`:`🔥 FEVER ${Math.floor(feverGauge/FEVER_NEED*100)}%`;$("feverFill").style.width=(fever?feverLeft/FEVER_SEC*100:feverGauge/FEVER_NEED*100)+"%"}
 function addFever(n){if(fever||!playing)return;feverGauge=Math.min(FEVER_NEED,feverGauge+n);if(feverGauge>=FEVER_NEED)startFever();updateFeverUI()}
-function startFever(){fever=true;feverLeft=FEVER_SEC;timeLeft+=5;runFever++;se("fever");$("time").textContent=timeLeft;toast("🔥 FEVER！ +5秒");$("gamehint").textContent="フィーバー中！スコア2倍！";switchBgm("fever")}
+function startFever(){fever=true;feverLeft=FEVER_SEC;timeLeft+=5;runFever++;se("fever");$("time").textContent=timeLeft;feverBannerShow();$("gamehint").textContent="フィーバー中！スコア2倍！";switchBgm("fever")}
 function endFever(){fever=false;feverGauge=0;feverLeft=0;updateFeverUI();if(playing)switchBgm("play")}
 function createBall(x,y,type,vx=0,vy=0,big=false){return{id:uid++,x,y,vx,vy,r:big?R*2:R,big,type,gone:false,sq:0,sqv:0,sa:0,pm:0,pc:0,ps:0}}
 function newBoard(){fxs=[];balls=[];selected=[];particles=[];bombs=[];uid=1;bombUid=1;skillCharge=0;activeTypes=getActiveTypes();buildTlvRow();const cols=7,rows=7,dx=(W-2*R)/(cols-1),dy=Math.min(R*1.28,(H-2*R)/(rows-1));for(let i=0;i<45;i++){const row=Math.floor(i/cols),col=i%cols,n=Math.min(cols,45-row*cols);const x=(W-(n-1)*dx)/2+col*dx+(rand(5)-2.5),y=R+row*dy+(rand(4)-2);balls.push(createBall(clamp(x,R,W-R),clamp(y,R,H-R),activeTypes[Math.floor(rand(activeTypes.length))],rand(.7)-.35,rand(.5)-.25))}for(let i=0;i<15;i++)collisions();updateSkillUI()}
@@ -415,7 +443,7 @@ for(const b of all){if(b.gone)continue;if(b.x<b.r){if(it===0)press(b,0,b.r-b.x+(
 function softStep(){for(const b of balls){if(b.gone)continue;const t=Math.min(.34,b.pm/R*1.6);if(b.pm>.05)b.sa=Math.atan2(b.ps,b.pc)/2;b.sqv+=(t-b.sq)*.32;b.sqv*=.7;b.sq=clamp(b.sq+b.sqv,-.22,.38)}}
 function jiggle(x,y){const lim=R*3.2;for(const b of balls){if(b.gone)continue;const d=Math.hypot(b.x-x,b.y-y);if(d<lim){const k=1-d/lim;b.sqv+=.07*k;b.vx+=(b.x-x)/(d+1)*.3*k;b.vy+=(b.y-y)/(d+1)*.3*k}}}
 function drawBall(b,isSelected){const im=images[b.type],r=b.r;ctx.save();ctx.translate(b.x,b.y);ctx.beginPath();ctx.ellipse(2,r*.82,r*.77,r*.19,0,0,Math.PI*2);ctx.fillStyle="#003f6c45";ctx.fill();{const k=1-(b.sq||0)*.28+(isSelected?.06:0);ctx.scale(k,k)}if(im&&im.complete&&im.naturalWidth){ctx.drawImage(im,-r*1.13,-r*1.13,r*2.26,r*2.26)}else{ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle="#f3c77a";ctx.fill()}if(isSelected){ctx.beginPath();ctx.arc(0,0,r*1.09,0,Math.PI*2);ctx.strokeStyle="#fff28a";ctx.lineWidth=3;ctx.stroke()}if(b.type===favorite){ctx.font=`${r*.62}px sans-serif`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.lineWidth=2;ctx.strokeStyle="#a86c2b";ctx.fillStyle="#ffe36b";ctx.strokeText("★",r*.72,-r*.7);ctx.fillText("★",r*.72,-r*.7)}ctx.restore()}
-function render(){if(!ctx)return;ctx.clearRect(0,0,W,H);ctx.save();if(shake>.3){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.88}else shake=0;const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#168ab8");bg.addColorStop(1,"#0b4178");ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);for(let y=15;y<H;y+=38)for(let x=12;x<W;x+=36){ctx.fillStyle="#ffffff0b";ctx.beginPath();ctx.arc(x+(y%3)*3,y,1.2,0,Math.PI*2);ctx.fill()}const ids=new Set(selected.map(b=>b.id));for(const b of balls)if(!b.gone&&!b.big)drawBall(b,ids.has(b.id));for(const b of balls)if(!b.gone&&b.big)drawBall(b,ids.has(b.id));
+function render(){if(!ctx)return;ctx.clearRect(0,0,W,H);ctx.save();if(shake>.3){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.88}else shake=0;const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,fever?"#0a0620":"#168ab8");bg.addColorStop(1,fever?"#02020a":"#0b4178");ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);if(fever)feverBack();for(let y=15;y<H;y+=38)for(let x=12;x<W;x+=36){ctx.fillStyle="#ffffff0b";ctx.beginPath();ctx.arc(x+(y%3)*3,y,1.2,0,Math.PI*2);ctx.fill()}const ids=new Set(selected.map(b=>b.id));for(const b of balls)if(!b.gone&&!b.big)drawBall(b,ids.has(b.id));for(const b of balls)if(!b.gone&&b.big)drawBall(b,ids.has(b.id));
 for(const b of bombs){ctx.save();const pulse=1+Math.sin(performance.now()/180+b.id)*.035;ctx.translate(b.x,b.y);ctx.scale(pulse,pulse);const g=ctx.createRadialGradient(-b.r*.35,-b.r*.4,1,0,0,b.r);g.addColorStop(0,"#ffffffeb");g.addColorStop(.22,"#d9ffffb8");g.addColorStop(.55,"#8ceaff88");g.addColorStop(.8,"#f2aaff7a");g.addColorStop(1,"#ffffffd9");ctx.beginPath();ctx.arc(0,0,b.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.strokeStyle="#ffffff";ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.ellipse(-b.r*.28,-b.r*.4,b.r*.22,b.r*.1,-.5,0,Math.PI*2);ctx.fillStyle="#ffffffdd";ctx.fill();ctx.restore()}
 for(const p of particles){ctx.globalAlpha=clamp(p.life,0,1);ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,p.r*(1.6-p.life),0,Math.PI*2);ctx.stroke()}ctx.globalAlpha=1;drawFx();ctx.restore()}
 function point(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
@@ -1072,6 +1100,18 @@ function unlockAudio(){
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(actx&&actx.state!=="running")try{actx.resume()}catch(e){}audioReady=!!(actx&&actx.state==="running");updateAudioHint();ensureBgm()}});
 window.addEventListener("pageshow",()=>{if(actx&&actx.state!=="running")try{actx.resume()}catch(e){}});
 updateAudioHint();
+
+/* ===== v22: fever neon UI ===== */
+function feverBack(){const t=performance.now()/1000;ctx.save();ctx.globalCompositeOperation="lighter";
+ for(let i=0;i<3;i++){const x=W*(.5+.38*Math.sin(t*.6+i*2.1)),y=H*(.5+.32*Math.cos(t*.5+i*1.7)),r=Math.max(W,H)*.55,hue=(t*45+i*120)%360,g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,"hsla("+hue+",100%,55%,.3)");g.addColorStop(1,"hsla("+hue+",100%,55%,0)");ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+ for(let i=0;i<24;i++){const p=(t*.18+hx(i,50))%1,x=W*hx(i,51)+Math.sin(t*2+i)*8,y=H*(1-p),hue=(i*17+t*80)%360;ctx.fillStyle="hsla("+hue+",100%,70%,"+.75*Math.sin(p*Math.PI)+")";ctx.beginPath();ctx.arc(x,y,1.5+hx(i,52)*2.6,0,6.283);ctx.fill()}
+ ctx.restore()}
+function feverBannerShow(){const b=$("feverBanner");if(!b)return;b.classList.remove("on");void b.offsetWidth;b.classList.add("on")}
+(function(){const app=document.querySelector(".app"),fr=document.querySelector(".gameframe");
+ const dk=document.createElement("div");dk.id="feverDark";app.insertBefore(dk,app.firstChild);
+ const ring=(n,o)=>Array.from({length:n},(_,i)=>'<i style="--i:'+(o+i)+'"></i>').join("");
+ const fl=document.createElement("div");fl.className="fl";fl.innerHTML='<div class="t">'+ring(14,0)+'</div><div class="r">'+ring(10,14)+'</div><div class="b">'+ring(14,24)+'</div><div class="l">'+ring(10,38)+'</div>';fr.appendChild(fl);
+ const bn=document.createElement("div");bn.id="feverBanner";bn.innerHTML="<b>FEVER</b><small>+5秒　スコア×2</small>";fr.appendChild(bn)})();
 load();resize();updateTop();updateHearts();renderCollection();initV16();requestAnimationFrame(loop);setInterval(updateHearts,1000);
 })();
 </script>
